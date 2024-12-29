@@ -63,12 +63,6 @@ _Immerse yourself in a virtual tour of the campus._
 
 ---
 
-## 🌟 **Contributors**
-- **[Your Name]** – App Development and Navigation Logic  
-- Feel free to contribute! Fork this repository and submit a pull request.
-
----
-
 ## 📝 **License**
 This project is licensed under Maria Truong, Eric Nguyen, Nick Tran
 
