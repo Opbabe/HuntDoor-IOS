@@ -12,6 +12,7 @@ The **Student Classroom Finder** app is designed to make campus navigation a bre
 ### 🔍 **1. Classroom Finder**
 Effortlessly locate your classroom with pinpoint accuracy.  
 _Say goodbye to wandering around campus aimlessly!_
+<img width="184" alt="Screenshot 2024-12-29 at 3 57 21 PM" src="https://github.com/user-attachments/assets/40fddd98-1da1-4edd-9cd6-625d6b17a21c" />
 
 ---
 
@@ -19,6 +20,9 @@ _Say goodbye to wandering around campus aimlessly!_
 Turn navigation into a game!  
 - Engage users with a **GeoGuessr-style scavenger hunt**.  
 - Boost interest while helping students familiarize themselves with campus landmarks.
+
+  
+<img width="404" alt="Screenshot 2024-12-29 at 3 53 33 PM" src="https://github.com/user-attachments/assets/573fc12f-7d53-446f-a2ac-8dfc218d08f6" />
 
 ---
 
