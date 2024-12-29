@@ -2,7 +2,7 @@
 //  PanoramicLibrary.swift
 //  X
 //
-//  Created by Eric Nguyen on 5/5/24.
+//  Created by Nick Tran on 5/5/24.
 //
 
 import SwiftUI

@@ -1,9 +1,5 @@
-//
-//  PanoramicImage.swift
-//  X
-//
-//  Created by Eric Nguyen on 5/5/24.
-//
+
+
 
 import SwiftUI
 

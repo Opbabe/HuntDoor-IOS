@@ -2,8 +2,10 @@
 //  testingApp.swift
 //  testing
 //
-//  Created by Linh Ngoc My Truong on 2/6/24.
+//  Created by Nick Tran on 2/6/24.
 //
+
+
 
 import SwiftUI
 

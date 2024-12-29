@@ -1,98 +1,174 @@
-//
-//  ContentView.swift
-//  testing
-//
-//  Created by Linh Ngoc My Truong on 2/6/24.
-//
-
 import SwiftUI
 import MapKit
 
 struct ContentView: View {
-    let tower = CLLocationCoordinate2D(
-        latitude: 37.33543869042343,
-        longitude: -121.8835121183419)
-    let library = CLLocationCoordinate2D(
-        latitude: 37.33560929984678,
-        longitude: -121.88501415529467)
-    let studentUnion = CLLocationCoordinate2D(
-        latitude: 37.33629807996933,
-        longitude: -121.88149806067068)
-    
-    @State private var showPickerModal = false // State to control visibility of the modal
-    
+    @State var level = 1 // Changed from private to public
+    @State private var showGuessResult = false
+    @State private var guessResultTitle = ""
+    @State private var showHintModal = true
+    @State private var region: MKCoordinateRegion
+    @State private var userGuessLocation: CLLocationCoordinate2D?
+    @State private var annotations: [LocationAnnotation] = []
+
+    @State private var showMapView = false
+
+    let locations = [
+        CLLocationCoordinate2D(latitude: 37.33629807996933, longitude: -121.88149806067068), // Student Union
+        CLLocationCoordinate2D(latitude: 37.335289, longitude: -121.884695) // MLK Library
+    ]
+
+    init() {
+        _region = State(initialValue: MKCoordinateRegion(center: locations[0], span: MKCoordinateSpan(latitudeDelta: 0.003, longitudeDelta: 0.003)))
+    }
+
     var body: some View {
         VStack {
-            Map() {
-                Marker("Tower Lawn", coordinate: tower).tint(.blue)
-                Marker("MLK Library", coordinate: library).tint(.yellow)
-                Marker("Student Union", coordinate: studentUnion)
-            }
-            
-            Button(action: {
-                // Show the modal with the Picker
-                self.showPickerModal = true
-            }) {
-                Text("Play Game")
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-            .padding()
-        }
-        .sheet(isPresented: $showPickerModal) {
-            // Modal content
-            LocationPickerModalView(showModal: $showPickerModal)
-        }
-    }
-}
+            Text("Here is level 1 hint!").font(.headline).padding()
+            Text("Level \(level)").font(.subheadline).padding()
 
-struct LocationPickerModalView: View {
-    @Binding var showModal: Bool
-    let locations = ["Tower Lawn", "MLK Library", "Student Union"]
-    @State private var selectedLocation = "Tower Lawn"
-    @State private var isCorrect = false
-    @State private var hasSelectionBeenMade = false
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Select a location")
-                .font(.headline)
-            Text("North West")
-                .font(.headline)
-            
-            Picker("Select a location", selection: $selectedLocation) {
-                ForEach(locations, id: \.self) { location in
-                    Text(location).tag(location)
+            CustomMapView(region: $region, annotations: $annotations, onTap: { coordinate in
+                self.placeGuess(coordinate)
+            })
+
+            Button("Guess Location") {
+                if let userGuessLocation = userGuessLocation {
+                    calculateDistanceFromGuessToActual(guessLocation: userGuessLocation)
                 }
-            }
-            .pickerStyle(WheelPickerStyle())
-            .onChange(of: selectedLocation) { newValue in
-                isCorrect = (newValue == "MLK Library")
-                hasSelectionBeenMade = true
-            }
-            
-            if hasSelectionBeenMade {
-                Text("\(selectedLocation)")
-                    .padding()
-                    .background(isCorrect ? Color.green : Color.red)
-                    .foregroundColor(.white)
-                    .cornerRadius(5)
-            }
-            
-            Button("Done") {
-                showModal = false
             }
             .padding()
             .background(Color.blue)
             .foregroundColor(.white)
             .cornerRadius(10)
+            .disabled(userGuessLocation == nil)
+            .alert(isPresented: $showGuessResult) {
+                Alert(title: Text(guessResultTitle), dismissButton: .default(Text("Next Level")) {
+                    goToNextLevel()
+                })
+            }
+
+            Button("Need a hint?") {
+                self.showHintModal = true
+            }
+            .padding()
+            .background(Color.green)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+
+            Button("Open Map") {
+                showMapView = true
+            }
+            .padding()
+            .background(Color.purple)
+            .foregroundColor(.white)
+            .cornerRadius(10)
         }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        
-        .edgesIgnoringSafeArea(.all)
+        .sheet(isPresented: $showHintModal) {
+            HintModalView(imageName: level == 1 ? "StudentUnionpic" : "mlkLib", showModal: $showHintModal, level: level)
+        }
+        .sheet(isPresented: $showMapView) {
+            AMapView()
+        }
+    }
+
+    func placeGuess(_ coordinate: CLLocationCoordinate2D) {
+        annotations.removeAll(where: { $0.name == "Your Guess" })
+        let newAnnotation = LocationAnnotation(name: "Your Guess", coordinate: coordinate)
+        annotations.append(newAnnotation)
+        userGuessLocation = coordinate
+    }
+
+    func calculateDistanceFromGuessToActual(guessLocation: CLLocationCoordinate2D) {
+        let guessLocation = CLLocation(latitude: guessLocation.latitude, longitude: guessLocation.longitude)
+        let actualLocation = CLLocation(latitude: locations[level - 1].latitude, longitude: locations[level - 1].longitude)
+        let distance = guessLocation.distance(from: actualLocation)
+        if distance < 50 {
+            guessResultTitle = "Correct! You're just \(Int(distance)) meters away!"
+        } else {
+            guessResultTitle = "Not quite. You're \(Int(distance)) meters away."
+        }
+        showGuessResult = true
+    }
+
+    func goToNextLevel() {
+        if level < locations.count {
+            level += 1
+            region = MKCoordinateRegion(center: locations[level - 1], span: MKCoordinateSpan(latitudeDelta: 0.003, longitudeDelta: 0.003))
+            userGuessLocation = nil
+            annotations.removeAll()
+            showHintModal = true
+        }
+    }
+}
+
+struct LocationAnnotation: Identifiable {
+    let id = UUID()
+    var name: String
+    var coordinate: CLLocationCoordinate2D
+}
+
+struct CustomMapView: UIViewRepresentable {
+    @Binding var region: MKCoordinateRegion
+    @Binding var annotations: [LocationAnnotation]
+    var onTap: (CLLocationCoordinate2D) -> Void
+
+    func makeUIView(context: Context) -> MKMapView {
+        let mapView = MKMapView()
+        mapView.delegate = context.coordinator
+        let longTapGesture = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleLongTapGesture(_:)))
+        mapView.addGestureRecognizer(longTapGesture)
+        return mapView
+    }
+
+    func updateUIView(_ uiView: MKMapView, context: Context) {
+        uiView.setRegion(region, animated: true)
+        uiView.removeAnnotations(uiView.annotations)
+        let newAnnotations = annotations.map { location in
+            let mkAnnotation = MKPointAnnotation()
+            mkAnnotation.coordinate = location.coordinate
+            mkAnnotation.title = location.name
+            return mkAnnotation
+        }
+        uiView.addAnnotations(newAnnotations)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onTap: onTap)
+    }
+
+    class Coordinator: NSObject, MKMapViewDelegate {
+        var onTap: (CLLocationCoordinate2D) -> Void
+
+        init(onTap: @escaping (CLLocationCoordinate2D) -> Void) {
+            self.onTap = onTap
+        }
+
+        @objc func handleLongTapGesture(_ gesture: UILongPressGestureRecognizer) {
+            if gesture.state == .began {
+                let locationInView = gesture.location(in: gesture.view)
+                let coordinate = (gesture.view as! MKMapView).convert(locationInView, toCoordinateFrom: gesture.view)
+                onTap(coordinate)
+            }
+        }
+    }
+}
+
+struct HintModalView: View {
+    var imageName: String
+    @Binding var showModal: Bool
+    var level: Int
+
+    var body: some View {
+        VStack {
+            Text(level == 1 ? "Hey welcome! here is your hint for level 1" : "Here is the hint for level 2!").font(.headline).padding()
+            Image(imageName).resizable().aspectRatio(contentMode: .fit).padding()
+            Button("Close") {
+                self.showModal = false
+            }
+            .padding()
+            .background(Color.red)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+        }
     }
 }
 
@@ -101,3 +177,7 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+
+
+
+

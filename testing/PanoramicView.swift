@@ -2,7 +2,7 @@
 //  PanoramicView.swift
 //  X
 //
-//  Created by Eric Nguyen on 5/4/24.
+//  Created by Nick Tran on 5/4/24.
 //
 
 import SwiftUI
