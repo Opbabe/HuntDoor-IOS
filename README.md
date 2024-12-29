@@ -1,4 +1,6 @@
-# 🏫 **Student Classroom Finder**
+# 🏫 **HuntDoor-IOS**
+
+Developed by Nick Tran, Maria Truong, Eric Nguyen
 
 **Find your way effortlessly around San Jose State University!**  
 The **Student Classroom Finder** app is designed to make campus navigation a breeze. Whether you're a new student or a seasoned Spartan, this app has features to ensure you never feel lost again.
